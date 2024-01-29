@@ -14,6 +14,14 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             'time_in_force'
         )
 
+    def validate_qty(self, value):
+        if value <= 0:
+            raise serializers.ValidationError(
+                "Кол-во не должно быть меньше или равно 0"
+            )
+        return value
+
+
 
 class StockOrderListSerializer(serializers.ModelSerializer):
 

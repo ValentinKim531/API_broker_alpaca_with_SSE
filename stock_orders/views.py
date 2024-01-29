@@ -45,39 +45,45 @@ class CreateOrderView(generics.CreateAPIView):
                 json=request.data
             )
             response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            return Response(
+                {"error": f"Не удалось отправить запрос в API: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
+        try:
             order_data = response.json()
+        except ValueError as e:
+            return Response(
+                {"error": f"Не удалось проанализировать ответ API: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        try:
             order_data['created_at'] = (
                 datetime.fromisoformat(
-                    order_data['created_at']
-                ).replace(tzinfo=pytz.UTC)
+                    order_data['created_at']).replace(tzinfo=pytz.UTC)
             )
             order_data['updated_at'] = (
                 datetime.fromisoformat(
-                    order_data['updated_at']
-                ).replace(tzinfo=pytz.UTC)
+                    order_data['updated_at']).replace(tzinfo=pytz.UTC)
             )
-
-            valid_args = {key.name: order_data[key.name]
-                          for key in StockOrder._meta.get_fields()
-                          if key.name in order_data}
-            valid_args['id_order'] = (
-                valid_args.pop('id')
-            )
-
+            valid_args = {
+                key.name: order_data[key.name]
+                for key in StockOrder._meta.get_fields()
+                if key.name in order_data
+            }
+            valid_args['id_order'] = valid_args.pop('id')
             order = StockOrder(**valid_args)
             order.save()
-
-            serializer = self.get_serializer(order)
+        except Exception as e:
             return Response(
-                serializer.data, status=status.HTTP_201_CREATED
-            )
-
-        except requests.exceptions.RequestException as e:
-            return Response(
-                {"error": str(e)},
+                {"error": f"Failed to save order: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+        serializer = self.get_serializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class StockOrderListView(generics.ListAPIView):
@@ -90,43 +96,47 @@ class StockOrderListView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         try:
             orders = StockOrder.objects.all()
-
             serializer = self.get_serializer(orders, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
         except Exception as e:
             return Response(
-                {"error": str(e)},
+                {"error": f"Не удалось получить ордера: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
 class DeleteOrderView(generics.DestroyAPIView):
+
+    @extend_schema(
+        tags=['Cancel orders']
+    )
     def delete(self, request, *args, **kwargs):
         headers = get_auth_headers()
         id_order = self.kwargs['id_order']
         try:
             order = StockOrder.objects.filter(id_order=id_order).first()
-
             if order is not None:
                 order.delete()
-
                 response = requests.delete(
                     f"https://broker-api.sandbox.alpaca.markets/"
-                    f"v1/trading/accounts/{settings.BROKER_ID}/orders/{id_order}",
+                    f"v1/trading/accounts/{settings.BROKER_ID}/"
+                    f"orders/{id_order}",
                     headers=headers
                 )
                 response.raise_for_status()
-
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response(
-                    {"error": "Order not found"},
+                    {"error": "Ордер не найден"},
                     status=status.HTTP_404_NOT_FOUND
                 )
-
         except requests.exceptions.RequestException as e:
             return Response(
-                {"error": str(e)},
+                {"error": f"Не удалось отправить запрос в API: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Не удалось отменить ордер: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
