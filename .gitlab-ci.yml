@@ -1,0 +1,45 @@
+services:
+  - docker:dind
+
+stages:
+  - build
+  - lint
+  - test
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+
+before_script:
+  - curl -sSL https://install.python-poetry.org | python3 -
+
+build:
+  stage: build
+  image: python:3.11
+  script:
+    - poetry config virtualenvs.create false
+    - poetry install
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+  only:
+    - main
+
+lint:
+  stage: lint
+  image: python:3.11
+  script:
+    - poetry config virtualenvs.create false
+    - poetry install
+    - poetry run flake8
+  only:
+    - main
+
+test:
+  stage: test
+  image: python:3.11
+  script:
+    - poetry config virtualenvs.create false
+    - poetry install
+    - poetry run pytest
+  only:
+    - main
