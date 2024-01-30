@@ -1,28 +1,29 @@
-services:
-  - docker:dind
-
 stages:
   - build
   - lint
   - test
 
+services:
+  - docker:dind
+
 variables:
-  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
 
 before_script:
-  - curl -sSL https://install.python-poetry.org | python3 -
   - export PATH="/root/.local/bin:$PATH"
+  - curl -sSL https://install.python-poetry.org | python3 -
   - poetry config virtualenvs.create false
+  - poetry install
 
 build:
   stage: build
-  image: python:3.11
+  image: docker:19.03.12
   script:
-    - poetry config virtualenvs.create false
-    - poetry install
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
   only:
     - main
 
@@ -30,8 +31,6 @@ lint:
   stage: lint
   image: python:3.11
   script:
-    - poetry config virtualenvs.create false
-    - poetry install
     - poetry run flake8
   only:
     - main
@@ -40,8 +39,6 @@ test:
   stage: test
   image: python:3.11
   script:
-    - poetry config virtualenvs.create false
-    - poetry install
     - poetry run pytest
   only:
     - main
