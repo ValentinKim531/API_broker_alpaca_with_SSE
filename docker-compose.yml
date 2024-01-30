@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: broker-backend-web
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: /app/start.sh
+    depends_on:
+      - db
+
+
+  db:
+    image: postgres:14-alpine
+    container_name: broker-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5413:5432"
+    volumes:
+      - 'db_data:/var/lib/postgresql/data'
+
+
+  celery:
+    build: .
+    container_name: broker-celery
+    command: celery -A backend worker --loglevel=DEBUG
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+
+volumes:
+  db_data:
+
+
+
