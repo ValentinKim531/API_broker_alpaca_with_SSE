@@ -12,6 +12,7 @@ def api_client():
 
 @pytest.fixture
 def stock_order_data():
+    """Тестовый ордер - экземпляр StockOrder"""
     return {
         'symbol': 'AAPL',
         'qty': 10,
@@ -23,6 +24,7 @@ def stock_order_data():
 
 @pytest.fixture
 def stock_order(db):
+    """Тестовый ордер - экземпляр StockOrder"""
     return StockOrder.objects.create(
         id_order='a75bf79b-df8b-4572-813a-2380320081c4',
         symbol="AAPL",

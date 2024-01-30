@@ -8,6 +8,8 @@ from stock_orders.serializers import (
 
 @pytest.fixture
 def stock_order_data():
+    """Тестовый ордер - экземпляр StockOrder"""
+
     return {
         'symbol': 'AAPL',
         'qty': 10.0,
@@ -18,6 +20,8 @@ def stock_order_data():
 
 @pytest.fixture
 def full_stock_order_data():
+    """Тестовый ордер - экземпляр StockOrder"""
+
     return {
         'id_order': 'TestOrder123',
         'client_order_id': 'ClientID123',
@@ -42,7 +46,6 @@ def full_stock_order_data():
         'source': 'manual'
     }
 
-
 @pytest.fixture
 def stock_order_instance(stock_order_data):
     return StockOrder.objects.create(**stock_order_data, status='pending')
@@ -56,23 +59,25 @@ def test_create_order_serializer_valid(stock_order_data):
     assert StockOrder.objects.count() == 1
     assert order.symbol == 'AAPL'
 
-
 @pytest.mark.django_db
 def test_create_order_serializer_invalid(stock_order_data):
     invalid_data = stock_order_data.copy()
-    invalid_data['qty'] = -10
+    invalid_data['qty'] = -10  # Невалидное количество
     serializer = CreateOrderSerializer(data=invalid_data)
     assert not serializer.is_valid()
 
 
 @pytest.mark.django_db
 def test_stock_order_list_serializer_full(full_stock_order_data):
+    """Создание экземпляра модели StockOrder с полными данными"""
+
     stock_order = StockOrder.objects.create(**full_stock_order_data)
 
+    # Сериализация экземпляра модели
     serializer = StockOrderListSerializer(instance=stock_order)
     data = serializer.data
 
-
+    # Проверка сериализованных данных
     assert data['id_order'] == 'TestOrder123'
     assert data['client_order_id'] == 'ClientID123'
     assert data['symbol'] == 'AAPL'
@@ -88,6 +93,7 @@ def test_stock_order_list_serializer_full(full_stock_order_data):
     assert str(data['commission']) == '1.00'
     assert data['source'] == 'manual'
 
+    # Проверка полей даты (пример)
     assert 'created_at' in data
     assert 'updated_at' in data
     assert 'submitted_at' in data

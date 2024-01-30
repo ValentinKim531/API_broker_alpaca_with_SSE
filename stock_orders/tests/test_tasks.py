@@ -28,14 +28,12 @@ def test_listen_to_alpaca_sse_integration(
 
     listen_to_alpaca_sse.delay()
 
-    # Проверка, что SSE сервис был вызван
     mock_alpaca_service_instance.listen_events.assert_called_once()
 
     # Проверка записи логов о запуске задачи и успешном подключении
     mock_logger.info.assert_any_call("Задача SSE запущена")
     mock_logger.info.assert_any_call("Подключение к SSE-серверу успешно")
 
-    # Дополнительная проверка для случая возникновения исключения
     mock_alpaca_service_instance.listen_events.side_effect = Exception(
         "Test error"
     )
@@ -48,7 +46,6 @@ def test_listen_to_alpaca_sse_integration(
 @patch("stock_orders.tasks.AlpacaSSEService")
 @patch("stock_orders.tasks.logger")
 def test_listen_to_alpaca_sse_success(mock_logger, mock_service):
-    # Имитация успешного подключения к SSE
     listen_to_alpaca_sse()
     mock_service.assert_called_once()
     mock_service().listen_events.assert_called_once()
@@ -59,7 +56,6 @@ def test_listen_to_alpaca_sse_success(mock_logger, mock_service):
 @patch("stock_orders.tasks.AlpacaSSEService")
 @patch("stock_orders.tasks.logger")
 def test_listen_to_alpaca_sse_failure(mock_logger, mock_service):
-    # Имитация ошибки при подключении
     mock_service().listen_events.side_effect = Exception("Test error")
     listen_to_alpaca_sse()
     mock_logger.error.assert_called_with(
