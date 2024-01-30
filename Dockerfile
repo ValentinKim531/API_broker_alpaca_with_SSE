@@ -6,7 +6,7 @@ COPY pyproject.toml poetry.lock /app/
 
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --no-dev
+    poetry install --no-interaction
 
 RUN apt-get update && apt-get install -y netcat-openbsd
 COPY start.sh /app/start.sh
