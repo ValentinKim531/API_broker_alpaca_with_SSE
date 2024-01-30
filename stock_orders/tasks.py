@@ -11,7 +11,6 @@ def listen_to_alpaca_sse():
     sse_url = \
         'https://broker-api.sandbox.alpaca.markets/v2beta1/events/trades'
     try:
-        # Код подключения и обработки SSE-событий
         service = AlpacaSSEService()
         service.listen_events(sse_url)
         logger.info("Подключение к SSE-серверу успешно")
