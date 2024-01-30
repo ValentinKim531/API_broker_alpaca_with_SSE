@@ -73,6 +73,7 @@ def test_stock_order_update_db(stock_order):
     updated_order = StockOrder.objects.get(id_order=stock_order.id_order)
     assert updated_order.status == "completed"
 
+
 @pytest.mark.django_db
 def test_stock_order_delete_from_db(stock_order):
     """Сохраняем экземпляр в базу данных, а затем удаляем его."""

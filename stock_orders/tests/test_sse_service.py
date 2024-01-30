@@ -165,7 +165,7 @@ def test_listen_events_with_multiple_events(mock_sse_client, db):
     ]
 
     sse_service = AlpacaSSEService()
-    with patch("stock_orders.sse_service.logger") as mock_logger:
+    with patch("stock_orders.sse_service.logger"):
         sse_service.listen_events("mock_url")
 
 

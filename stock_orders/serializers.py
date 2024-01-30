@@ -22,7 +22,6 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         return value
 
 
-
 class StockOrderListSerializer(serializers.ModelSerializer):
 
     class Meta:

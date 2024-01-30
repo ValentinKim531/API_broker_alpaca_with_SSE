@@ -18,6 +18,7 @@ def stock_order_data():
         'time_in_force': 'day'
     }
 
+
 @pytest.fixture
 def full_stock_order_data():
     """Тестовый ордер - экземпляр StockOrder"""
@@ -46,6 +47,7 @@ def full_stock_order_data():
         'source': 'manual'
     }
 
+
 @pytest.fixture
 def stock_order_instance(stock_order_data):
     return StockOrder.objects.create(**stock_order_data, status='pending')
@@ -58,6 +60,7 @@ def test_create_order_serializer_valid(stock_order_data):
     order = serializer.save()
     assert StockOrder.objects.count() == 1
     assert order.symbol == 'AAPL'
+
 
 @pytest.mark.django_db
 def test_create_order_serializer_invalid(stock_order_data):
