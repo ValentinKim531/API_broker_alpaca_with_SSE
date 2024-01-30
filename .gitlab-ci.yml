@@ -3,27 +3,29 @@ stages:
   - lint
   - test
 
-services:
-  - docker:dind
-
 variables:
-  DOCKER_HOST: tcp://docker:2375/
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
+  IMAGE_NAME: $CI_REGISTRY_IMAGE/$CI_PROJECT_PATH
+  IMAGE_TAG: $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
 
 before_script:
-  - export PATH="/root/.local/bin:$PATH"
-  - curl -sSL https://install.python-poetry.org | python3 -
-  - poetry config virtualenvs.create false
-  - poetry install
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  - echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
 build:
   stage: build
   image: docker:19.03.12
+  services:
+    - docker:dind
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker push $IMAGE_NAME:$IMAGE_TAG
   only:
     - main
 
@@ -31,6 +33,9 @@ lint:
   stage: lint
   image: python:3.11
   script:
+    - pip install poetry
+    - poetry config virtualenvs.create false
+    - poetry install
     - poetry run flake8
   only:
     - main
@@ -39,6 +44,9 @@ test:
   stage: test
   image: python:3.11
   script:
+    - pip install poetry
+    - poetry config virtualenvs.create false
+    - poetry install
     - poetry run pytest
   only:
     - main
