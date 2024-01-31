@@ -6,6 +6,7 @@ from stock_orders.models import StockOrder
 from rest_framework import status
 import requests_mock
 
+
 @pytest.fixture
 def api_client():
     return APIClient()
@@ -57,9 +58,15 @@ def test_stock_order_list_view(api_client, stock_order):
 def test_delete_order_view(api_client, stock_order):
     with requests_mock.Mocker() as m:
         # Настраиваем мок для запроса на удаление ордера у внешнего сервиса
-        m.delete(f"https://broker-api.sandbox.alpaca.markets/v1/trading/accounts/{settings.BROKER_ID}/orders/{stock_order.id_order}", status_code=200)
+        m.delete(
+            f"https://broker-api.sandbox.alpaca.markets/v1/trading/accounts/"
+            f"{settings.BROKER_ID}/orders/{stock_order.id_order}",
+            status_code=200
+        )
 
-        url = reverse('delete-order', kwargs={'id_order': stock_order.id_order})
+        url = reverse('delete-order', kwargs={
+            'id_order': stock_order.id_order}
+                      )
         response = api_client.delete(url)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
