@@ -43,12 +43,8 @@ lint:
     - main
 
 test:
-  stage: test
-  image: python:3.11
   script:
-    - pip install poetry
-    - poetry config virtualenvs.create false
-    - poetry install
-    - poetry run pytest
-  only:
-    - main
+    - docker-compose -f docker-compose.yml up -d db
+    - docker-compose -f docker-compose.yml run --rm backend poetry run pytest
+  after_script:
+    - docker-compose -f docker-compose.yml down
