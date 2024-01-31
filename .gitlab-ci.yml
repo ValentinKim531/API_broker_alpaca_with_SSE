@@ -49,6 +49,6 @@ test:
     - pip install poetry
     - poetry config virtualenvs.create false
     - poetry install
-    - poetry run pytest
+    - docker-compose run backend poetry run pytest
   only:
     - main
