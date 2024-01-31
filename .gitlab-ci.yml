@@ -51,9 +51,11 @@ test:
   before_script:
     - apk add --no-cache docker-compose
   script:
-    - echo "POSTGRES_USER=$DB_USER" > .env
-    - echo "POSTGRES_PASSWORD=$DB_PASSWORD" >> .env
-    - echo "POSTGRES_DB=$DB_NAME" >> .env
+    - echo "DB_USER=$DB_USER" > .env
+    - echo "DB_PASSWORD=$DB_PASSWORD" >> .env
+    - echo "DB_NAME=$DB_NAME" >> .env
+    - echo "DB_HOST=$DB_HOST" >> .env
+    - echo "DB_PORT=$DB_PORT" >> .env
     - echo "SECRET_KEY=$SECRET_KEY" >> .env
     - echo "BROKER_ID=$BROKER_ID" >> .env
     - echo "BROKER_API_KEY=$BROKER_API_KEY" >> .env
