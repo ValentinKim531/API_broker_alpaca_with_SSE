@@ -16,13 +16,7 @@ before_script:
   - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
   - chmod 644 ~/.ssh/known_hosts
   - echo "StrictHostKeyChecking no" >> ~/.ssh/config
-  - echo "POSTGRES_USER=$DB_USER" > .env
-  - echo "POSTGRES_PASSWORD=$DB_PASSWORD" >> .env
-  - echo "POSTGRES_DB=$DB_NAME" >> .env
-  - echo "SECRET_KEY=$SECRET_KEY" >> .env
-  - echo "BROKER_ID=BROKER_ID" >> .env
-  - echo "BROKER_API_KEY=BROKER_API_KEY" >> .env
-  - echo "BROKER_SECRET_KEY=BROKER_SECRET_KEY" >> .env
+
 
 build:
   stage: build
@@ -57,6 +51,13 @@ test:
   before_script:
     - apk add --no-cache docker-compose
   script:
+    - echo "POSTGRES_USER=$DB_USER" > .env
+    - echo "POSTGRES_PASSWORD=$DB_PASSWORD" >> .env
+    - echo "POSTGRES_DB=$DB_NAME" >> .env
+    - echo "SECRET_KEY=$SECRET_KEY" >> .env
+    - echo "BROKER_ID=BROKER_ID" >> .env
+    - echo "BROKER_API_KEY=BROKER_API_KEY" >> .env
+    - echo "BROKER_SECRET_KEY=BROKER_SECRET_KEY" >> .env
     - docker-compose -f docker-compose.yml up -d db
     - docker-compose -f docker-compose.yml run --rm backend poetry run pytest
   after_script:
