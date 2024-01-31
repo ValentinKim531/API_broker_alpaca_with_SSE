@@ -1,9 +1,10 @@
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APIClient
 from stock_orders.models import StockOrder
 from rest_framework import status
-
+import requests_mock
 
 @pytest.fixture
 def api_client():
@@ -54,7 +55,12 @@ def test_stock_order_list_view(api_client, stock_order):
 
 @pytest.mark.django_db
 def test_delete_order_view(api_client, stock_order):
-    url = reverse('delete-order', kwargs={'id_order': stock_order.id_order})
-    response = api_client.delete(url)
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert StockOrder.objects.count() == 0
+    with requests_mock.Mocker() as m:
+        # Настраиваем мок для запроса на удаление ордера у внешнего сервиса
+        m.delete(f"https://broker-api.sandbox.alpaca.markets/v1/trading/accounts/{settings.BROKER_ID}/orders/{stock_order.id_order}", status_code=200)
+
+        url = reverse('delete-order', kwargs={'id_order': stock_order.id_order})
+        response = api_client.delete(url)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert StockOrder.objects.count() == 0
