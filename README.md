@@ -20,7 +20,7 @@
 1. Клонируйте репозиторий на вашу локальную машину:
 
 ```
-git clone https://gitlab.com/Valentin531/broker_api.git
+git clone https://github.com/ValentinKim531/API_broker_alpaca_with_SSE.git
 ```
 
 2. Перейдите в корневую директорию проекта:
