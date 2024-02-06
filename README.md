@@ -89,7 +89,8 @@ docker-compose run backend flake8
 
 ## CI/CD
 
-В репозитории настроен GitLab CI/CD для автоматизации процессов сборки, 
+В репозитории настроен GitLab CI/CD (ссыска https://gitlab.com/Valentin531/broker_api) 
+для автоматизации процессов сборки, 
 тестирования и проверки кода:
 
 * Сборка Docker: Создание Docker образа приложения.
